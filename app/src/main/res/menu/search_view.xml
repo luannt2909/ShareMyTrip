@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/item_search"
+        android:title="Search"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="ifRoom"/>
+    <item android:title="Style Map">
+        <menu>
+            <item
+                android:id="@+id/style_normal"
+                android:title="NORMAL"/>
+            <item
+                android:id="@+id/style_hybird"
+                android:title="HYBIRD"/>
+            <item
+                android:id="@+id/style_sateline"
+                android:title="SATELINE"/>
+            </menu>
+    </item>
+    <item android:title="Clear"
+        android:id="@+id/item_clear"></item>
+    <item android:title="Setup MyTrip"
+        android:id="@+id/iten_setupRoad"></item>
+</menu>
