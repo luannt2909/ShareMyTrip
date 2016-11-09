@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">ShareMyTrip</string>
+    <string name="action_search">Search</string>
+
+    <string name="nav_item_home">Home</string>
+    <string name="nav_item_friend">Friends</string>
+    <string name="nav_item_messages">Message</string>
+    <string name="nav_item_notifications">Notification</string>
+    <string name="nav_item_setuptrip">Setup trip</string>
+    <string name="nav_item_share">Share</string>
+    <string name="nav_item_about">About</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+
+    <string name="title_home">Home</string>
+    <string name="title_friends">Friends</string>
+    <string name="title_notification">Notification</string>
+    <string name="title_setuptrip">Setup trip</string>
+
+    <string-array name="nav_drawer_label">
+        <item>@string/nav_item_home</item>
+        <item>@string/nav_item_friend</item>
+        <item>@string/nav_item_notifications</item>
+        <item>@string/nav_item_setuptrip</item>
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
