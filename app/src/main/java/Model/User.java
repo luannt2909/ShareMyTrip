@@ -21,6 +21,10 @@ public class User {
         this.userLocation = userLocation;
     }
 
+    public User(String userName) {
+        this.userName = userName;
+    }
+
     public User(String userName, String useravatar, LatLng userLocation) {
         this.userName = userName;
         this.useravatar = useravatar;

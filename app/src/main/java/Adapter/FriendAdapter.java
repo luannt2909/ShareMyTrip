@@ -5,7 +5,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.nguyentanluan.sharemytrip.R;
@@ -13,6 +12,7 @@ import com.example.nguyentanluan.sharemytrip.R;
 import java.util.List;
 
 import Model.User;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created by Nguyen Tan Luan on 11/9/2016.
@@ -44,14 +44,14 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendView
 
     @Override
     public int getItemCount() {
-        return 0;
+        return data.size();
     }
     public class FriendViewHolder extends RecyclerView.ViewHolder{
-        ImageView imgavatar;
+        CircleImageView imgavatar;
         TextView txtusername;
         public FriendViewHolder(View itemView) {
             super(itemView);
-            imgavatar=(ImageView)itemView.findViewById(R.id.imgfriendavatar);
+            imgavatar=(CircleImageView)itemView.findViewById(R.id.imgfriendavatar);
             txtusername=(TextView)itemView.findViewById(R.id.txtfriendname);
         }
     }

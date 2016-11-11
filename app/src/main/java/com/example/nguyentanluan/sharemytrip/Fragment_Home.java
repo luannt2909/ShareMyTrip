@@ -1,22 +1,81 @@
 package com.example.nguyentanluan.sharemytrip;
 
+
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements Fragment_Drawer.FragmentDrawerListener {
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-    /*private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import Modules.DirectionFinder;
+import Modules.DirectionFinderListener;
+import Modules.RoadFinder;
+import Modules.RoadFinderListener;
+import Modules.Route;
+
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
+
+
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.OnClickListener, DirectionFinderListener, RoadFinderListener {
+
+    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
     private static final int STARTPLACE_AUTOCOMPLETE_REQUEST_CODE = 2;
     private static final int ENDPLACE_AUTOCOMPLETE_REQUEST_CODE = 3;
-
+    private Toolbar toolbar;
+    private Fragment_Drawer fragment_drawer;
     private ProgressDialog dialog;
     private GoogleMap mMap;
+    MapView mapView;
     private Marker marker, markerStart, markerEnd, currentmaker;
     private List<Polyline> polylinePath;
 
@@ -30,25 +89,38 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     private String origin, destination, makerdestination;
     private Handler handler;
     private List<LatLng> listRoadLocation;
-    private List<LatLng> listSetupRoadLocation;*/
-    private Toolbar toolbar;
-    private Fragment_Drawer fragment_drawer;
+    private List<LatLng> listSetupRoadLocation;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        toolbar=(Toolbar)findViewById(R.id.toolbar);
-        fragment_drawer=(Fragment_Drawer)getSupportFragmentManager().findFragmentById(R.id.fragment_navigation_drawer);
-        setSupportActionBar(toolbar);
-        fragment_drawer.setUp(R.id.fragment_navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), toolbar);
-        fragment_drawer.setDrawerListener(this);
-        //initView();
-        //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        //mapFragment.getMapAsync(this);
+    public Fragment_Home() {
+        // Required empty public constructor
     }
 
-    /*GoogleMap.OnMyLocationChangeListener mylocationchangeListener = new GoogleMap.OnMyLocationChangeListener() {
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view=inflater.inflate(R.layout.fragment_home, container, false);
+        initView(view);
+        return view;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mapView = (MapView) view.findViewById(R.id.map);
+        mapView.onCreate(savedInstanceState);
+        mapView.onResume();
+        mapView.getMapAsync(this);
+    }
+
+    GoogleMap.OnMyLocationChangeListener mylocationchangeListener = new GoogleMap.OnMyLocationChangeListener() {
         @Override
         public void onMyLocationChange(Location location) {
 //            if (marker != null) {
@@ -69,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             if (marker != null) {
                 marker.remove();
             }
-            runOnUiThread(new Runnable() {
+            getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     marker = mMap.addMarker(new MarkerOptions().position(mylocation).title(findAddressMaker(mylocation))
@@ -83,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     GoogleMap.OnMapLongClickListener mapLongClickListener = new GoogleMap.OnMapLongClickListener() {
         @Override
         public void onMapLongClick(final LatLng latLng) {
-            runOnUiThread(new Runnable() {
+            getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if(isSetupRoad){
@@ -116,26 +188,25 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
         }
     };
 
-    public void initView() {
-        toolbar=(Toolbar)findViewById(R.id.toolbar);
-        fragment_drawer=(Fragment_Drawer)getSupportFragmentManager().findFragmentById(R.id.fragment_navigation_drawer);
-        btnfindmap = (ImageButton) findViewById(R.id.imgbtnmap);
-        lyfindmap = (LinearLayout) findViewById(R.id.layoutfindmap);
-        layoutroad = (FrameLayout) findViewById(R.id.layoutRoad);
-        txtstart = (TextView) findViewById(R.id.txtstartlocation);
-        txtend = (TextView) findViewById(R.id.txtendlocation);
-        txtsetup=(TextView) findViewById(R.id.txtnoticesetup);
-        btnfind = (ImageButton) findViewById(R.id.btnFindPath);
-        txtdistance = (TextView) findViewById(R.id.txtdistance);
-        txtduration = (TextView) findViewById(R.id.txtduration);
-        btnroute = (ImageButton) findViewById(R.id.btnroute);
-        btnroad = (ImageButton) findViewById(R.id.imgbtnroad);
-        btnhide = (ImageButton) findViewById(R.id.btnhide);
-        btnstart = (Button) findViewById(R.id.btnstart);
-        btnstop = (Button) findViewById(R.id.btnstop);
-        btnresume = (Button) findViewById(R.id.btnresume);
-        btnfinish = (Button) findViewById(R.id.btnfinish);
-        btnremovemaker = (ImageButton) findViewById(R.id.imgbtnremovemaker);
+    public void initView(View view) {
+        toolbar=(Toolbar)view.findViewById(R.id.toolbar);
+        btnfindmap = (ImageButton) view.findViewById(R.id.imgbtnmap);
+        lyfindmap = (LinearLayout) view.findViewById(R.id.layoutfindmap);
+        layoutroad = (FrameLayout) view.findViewById(R.id.layoutRoad);
+        txtstart = (TextView) view.findViewById(R.id.txtstartlocation);
+        txtend = (TextView) view.findViewById(R.id.txtendlocation);
+        txtsetup=(TextView) view.findViewById(R.id.txtnoticesetup);
+        btnfind = (ImageButton) view.findViewById(R.id.btnFindPath);
+        txtdistance = (TextView) view.findViewById(R.id.txtdistance);
+        txtduration = (TextView) view.findViewById(R.id.txtduration);
+        btnroute = (ImageButton) view.findViewById(R.id.btnroute);
+        btnroad = (ImageButton) view.findViewById(R.id.imgbtnroad);
+        btnhide = (ImageButton) view.findViewById(R.id.btnhide);
+        btnstart = (Button) view.findViewById(R.id.btnstart);
+        btnstop = (Button) view.findViewById(R.id.btnstop);
+        btnresume = (Button) view.findViewById(R.id.btnresume);
+        btnfinish = (Button) view.findViewById(R.id.btnfinish);
+        btnremovemaker = (ImageButton) view.findViewById(R.id.imgbtnremovemaker);
         polylinePath = new ArrayList<>();
         btnfindmap.setOnClickListener(this);
         btnfind.setOnClickListener(this);
@@ -152,15 +223,15 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
         btnremovemaker.setOnClickListener(this);
         listRoadLocation = new ArrayList<LatLng>();
         listSetupRoadLocation=new ArrayList<>();
-        setSupportActionBar(toolbar);
-        fragment_drawer.setUp(R.id.fragment_navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), toolbar);
-        fragment_drawer.setDrawerListener(this);
+        //((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
+        //fragment_drawer.setUp(R.id.fragment_navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), toolbar);
+        //fragment_drawer.setDrawerListener(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -181,9 +252,9 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.search_view, menu);
-        return super.onCreateOptionsMenu(menu);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.search_view, menu);
+        super.onCreateOptionsMenu(menu,inflater);
     }
 
     @Override
@@ -205,13 +276,13 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             case android.R.id.home:
                 lyfindmap.setVisibility(View.GONE);
                 btnfindmap.setVisibility(View.VISIBLE);
-                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
                 break;
             case R.id.item_clear:
                 mMap.clear();
                 lyfindmap.setVisibility(View.GONE);
                 btnfindmap.setVisibility(View.VISIBLE);
-                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
                 break;
             case R.id.iten_setupRoad:
                 showDialogSetup();
@@ -221,14 +292,14 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     }
 
     private void showDialogSetup() {
-        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(this);
+        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(getActivity());
         dialogbuilder.setTitle("QUESTION?");
         dialogbuilder.setMessage("Khi chọn chức năng này bạn sẽ phải chọn các địa điểm trên Map" +
                 " để thiết lập hành trình \n"+"Bạn có muốn bắt đầu không?");
         dialogbuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Toast.makeText(MainActivity.this, "Bắt đầu thiết lập hành trình.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Bắt đầu thiết lập hành trình.", Toast.LENGTH_SHORT).show();
                 listSetupRoadLocation.clear();
                 isSetupRoad=true;
                 txtsetup.setVisibility(View.VISIBLE);
@@ -247,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
 
     private void searchPlace(int requestcode) {
         try {
-            Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(MainActivity.this);
+            Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(getActivity());
             startActivityForResult(intent, requestcode);
         } catch (GooglePlayServicesRepairableException e) {
             e.printStackTrace();
@@ -257,44 +328,44 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
+                Place place = PlaceAutocomplete.getPlace(getActivity(), data);
                 mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 16));
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                Toast.makeText(this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+                Status status = PlaceAutocomplete.getStatus(getActivity(), data);
+                Toast.makeText(getActivity(), status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             } else if (resultCode == RESULT_CANCELED) {
             }
         }
         if (requestCode == STARTPLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
+                Place place = PlaceAutocomplete.getPlace(getActivity(), data);
                 txtstart.setText(place.getName().toString());
                 origin = String.valueOf(place.getLatLng().latitude) + ", " + String.valueOf(place.getLatLng().longitude);
                 markerStart = mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString())
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_origin)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 16));
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                Toast.makeText(this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+                Status status = PlaceAutocomplete.getStatus(getActivity(), data);
+                Toast.makeText(getActivity(), status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             } else if (resultCode == RESULT_CANCELED) {
             }
         }
         if (requestCode == ENDPLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
+                Place place = PlaceAutocomplete.getPlace(getActivity(), data);
                 txtend.setText(place.getName().toString());
                 destination = String.valueOf(place.getLatLng().latitude) + ", " + String.valueOf(place.getLatLng().longitude);
                 markerEnd = mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString())
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 16));
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                Toast.makeText(this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+                Status status = PlaceAutocomplete.getStatus(getActivity(), data);
+                Toast.makeText(getActivity(), status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             } else if (resultCode == RESULT_CANCELED) {
             }
         }
@@ -307,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             case R.id.imgbtnmap:
                 lyfindmap.setVisibility(View.VISIBLE);
                 btnfindmap.setVisibility(View.GONE);
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 break;
             case R.id.btnFindPath:
                 sendRequest();
@@ -337,14 +408,14 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             case R.id.btnstop:
                 btnstop.setVisibility(View.GONE);
                 btnresume.setVisibility(View.VISIBLE);
-                Toast.makeText(MainActivity.this, "Tạm dừng ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Tạm dừng ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
                 if (handler != null)
                     handler.removeCallbacks(runnable);
                 break;
             case R.id.btnresume:
                 btnstop.setVisibility(View.VISIBLE);
                 btnresume.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Tiếp tục ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Tiếp tục ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
                 getLocationOff();
                 break;
             case R.id.btnfinish:
@@ -371,7 +442,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     }
 
     private void finishRoad() {
-        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(this);
+        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(getActivity());
         dialogbuilder.setTitle("QUESTION?");
         dialogbuilder.setMessage("Bạn muốn kết thúc ghi dấu hành trình?");
         dialogbuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -380,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
                 btnstart.setVisibility(View.VISIBLE);
                 btnstop.setVisibility(View.GONE);
                 btnresume.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Kết thúc ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Kết thúc ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
                 if (handler != null)
                     handler.removeCallbacks(runnable);
                 sendRequestRoad();
@@ -401,11 +472,11 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
         isFromMyLocation=true;
         origin = String.valueOf(mylocation.latitude) + ", " + String.valueOf(mylocation.longitude);
         if (origin.isEmpty()) {
-            Toast.makeText(this, "Please enter origin address", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Please enter origin address", Toast.LENGTH_SHORT).show();
             return;
         }
         if (makerdestination.isEmpty()) {
-            Toast.makeText(this, "Please enter destination address", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Please enter destination address", Toast.LENGTH_SHORT).show();
             return;
         }
         try {
@@ -418,11 +489,11 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
 
     private void sendRequest() {
         if (txtstart.getText().equals("")) {
-            Toast.makeText(this, "Please enter origin address", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Please enter origin address", Toast.LENGTH_SHORT).show();
             return;
         }
         if (txtend.getText().equals("")) {
-            Toast.makeText(this, "Please enter destination address", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), "Please enter destination address", Toast.LENGTH_SHORT).show();
             return;
         }
         try {
@@ -435,24 +506,24 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     private void sendRequestRoad() {
         if(isSetupRoad){
             if(listSetupRoadLocation.isEmpty()) {
-                Toast.makeText(this, "Chưa thiết lập các địa điểm để ghi dấu.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Chưa thiết lập các địa điểm để ghi dấu.", Toast.LENGTH_SHORT).show();
                 return;
             }else if(listSetupRoadLocation.size()>0){
                 new RoadFinder(this,listSetupRoadLocation).excute();
             }
         }else
-            if(listRoadLocation.isEmpty()){
-                Toast.makeText(this, "Hiện chưa có gì để ghi dấu, xin nhấn Start để bắt đầu", Toast.LENGTH_SHORT).show();
-                return;
-            }else {
-                new RoadFinder(this, listRoadLocation).excute();
-            }
+        if(listRoadLocation.isEmpty()){
+            Toast.makeText(getActivity(), "Hiện chưa có gì để ghi dấu, xin nhấn Start để bắt đầu", Toast.LENGTH_SHORT).show();
+            return;
+        }else {
+            new RoadFinder(this, listRoadLocation).excute();
+        }
 
     }
 
     @Override
     public void onDirectionFinderStart() {
-        dialog = ProgressDialog.show(this, "Please wait.", "Finding direction...!", true, true);
+        dialog = ProgressDialog.show(getActivity(), "Please wait.", "Finding direction...!", true, true);
         if (markerStart != null) {
             markerStart.remove();
         }
@@ -492,7 +563,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     }
 
     public void showDialogRoad() {
-        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(this);
+        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(getActivity());
         dialogbuilder.setTitle("QUESTION?");
         dialogbuilder.setMessage("Bạn muốn bắt đầu ghi dấu hành trình?");
         dialogbuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -500,7 +571,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             public void onClick(DialogInterface dialogInterface, int i) {
                 btnstart.setVisibility(View.GONE);
                 btnstop.setVisibility(View.VISIBLE);
-                Toast.makeText(MainActivity.this, "Bắt đầu ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Bắt đầu ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
                 listRoadLocation.clear();
                 getLocationOff();
             }
@@ -527,7 +598,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             if (mylocation != null) {
                 if (listRoadLocation != null)
                     listRoadLocation.add(mylocation);
-                Toast.makeText(MainActivity.this, mylocation.latitude + " - " + mylocation.longitude, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), mylocation.latitude + " - " + mylocation.longitude, Toast.LENGTH_SHORT).show();
             }
             handler.postDelayed(this, 5000);
         }
@@ -535,7 +606,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
 
     @Override
     public void onRoadFinderStart() {
-        dialog = ProgressDialog.show(this, "Vui lòng đợi", "Hành trình của bạn đang được cập nhập.", true, true);
+        dialog = ProgressDialog.show(getActivity(), "Vui lòng đợi", "Hành trình của bạn đang được cập nhập.", true, true);
 //        if (markerStart != null) {
 //            markerStart.remove();
 //        }
@@ -586,12 +657,12 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
     }
 
     public String findAddressMaker(final LatLng latLng) {
-        Geocoder geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
+        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
         String address = "";
         try {
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
             if (addresses.isEmpty()) {
-                Toast.makeText(MainActivity.this, "Error!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Error!", Toast.LENGTH_SHORT).show();
             } else if (addresses.size() > 0) {
                 address = addresses.get(0).getAddressLine(0) + ", " + addresses.get(0).getAddressLine(1) + ", " + addresses.get(0).getAddressLine(2);
                 return address;
@@ -601,34 +672,5 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
         }
         return null;
     }
-    */
 
-    @Override
-    public void onDrawerItemSelected(View view, int position) {
-        displayView(position);
-    }
-    public  void displayView(int position){
-        Fragment fragment=null;
-        switch (position){
-            case 0:
-                //Intent intent=new Intent(this.getApplicationContext(),MainActivity.class);
-                //startActivity(intent);
-                fragment=new Fragment_Home();
-                break;
-            case 1:
-                fragment=new Fragment_Friends();
-                break;
-            case 2:
-                break;
-            case 3:
-                fragment=new Fragment_SetupTrip();
-                break;
-        }
-        if(fragment!=null){
-            FragmentManager manager=getSupportFragmentManager();
-            FragmentTransaction transaction=manager.beginTransaction();
-            transaction.replace(R.id.container_body,fragment);
-            transaction.commit();
-        }
-    }
 }

@@ -2,11 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.nguyentanluan.sharemytrip.Fragment_Friends">
    <android.support.v7.widget.RecyclerView
+       android:id="@+id/recylerviewFriend"
        android:layout_width="match_parent"
-       android:layout_height="wrap_content"
+       android:layout_height="match_parent"
        android:layout_margin="5dp"
        android:padding="5dp">
    </android.support.v7.widget.RecyclerView>
