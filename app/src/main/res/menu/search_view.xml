@@ -20,6 +20,4 @@
     </item>
     <item android:title="Clear"
         android:id="@+id/item_clear"></item>
-    <item android:title="Setup MyTrip"
-        android:id="@+id/iten_setupRoad"></item>
 </menu>

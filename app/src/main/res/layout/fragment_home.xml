@@ -22,15 +22,6 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true">
 
-        <TextView
-            android:id="@+id/txtnoticesetup"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|top"
-            android:text="Đang trong chế độ thiết lập đường đi.Nhấn đây để hủy."
-            android:textColor="@color/colorPrimary"
-            android:textSize="18sp"
-            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/btnroute"
@@ -51,14 +42,6 @@
             android:background="@color/colorPrimary"
             android:src="@android:drawable/ic_dialog_map" />
 
-        <ImageButton
-            android:id="@+id/imgbtnroad"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="bottom|center"
-            android:layout_marginBottom="5dp"
-            android:background="@drawable/circle_button"
-            android:src="@android:drawable/ic_input_add" />
 
         <ImageButton
             android:id="@+id/imgbtnremovemaker"
@@ -70,74 +53,6 @@
             android:background="@drawable/circle_button"
             android:src="@android:drawable/ic_menu_delete"
             android:visibility="gone" />
-
-        <FrameLayout
-            android:id="@+id/layoutRoad"
-            android:layout_width="130dp"
-            android:layout_height="50dp"
-            android:layout_gravity="bottom|center"
-            android:layout_marginBottom="5dp"
-            android:background="@drawable/circle_shape"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <Button
-                android:id="@+id/btnstart"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="left|center"
-                android:background="@drawable/circle_button"
-                android:text="Start"
-                android:textAllCaps="false"
-                android:textColor="#fff"
-                android:textSize="12sp" />
-
-            <Button
-                android:id="@+id/btnstop"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="left|center"
-                android:background="@drawable/circle_button_stop"
-                android:text="Stop"
-                android:textAllCaps="false"
-                android:textColor="#fff"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/btnresume"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="left|center"
-                android:background="@drawable/circle_button_resume"
-                android:text="Resume"
-                android:textAllCaps="false"
-                android:textColor="#fff"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/btnfinish"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:background="@drawable/circle_button"
-                android:text="Finish"
-                android:textAllCaps="false"
-                android:textColor="#fff"
-                android:textSize="12sp" />
-
-            <ImageButton
-                android:id="@+id/btnhide"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="right|center"
-                android:layout_marginRight="5dp"
-                android:background="@drawable/circle_button"
-                android:src="@android:drawable/ic_delete" />
-
-
-        </FrameLayout>
 
         <LinearLayout
             android:id="@+id/layoutfindmap"

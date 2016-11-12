@@ -2,7 +2,6 @@ package com.example.nguyentanluan.sharemytrip;
 
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -10,21 +9,17 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -40,7 +35,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -55,8 +49,6 @@ import java.util.Locale;
 
 import Modules.DirectionFinder;
 import Modules.DirectionFinderListener;
-import Modules.RoadFinder;
-import Modules.RoadFinderListener;
 import Modules.Route;
 
 import static android.app.Activity.RESULT_CANCELED;
@@ -66,13 +58,11 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.OnClickListener, DirectionFinderListener, RoadFinderListener {
+public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.OnClickListener, DirectionFinderListener {
 
     private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
     private static final int STARTPLACE_AUTOCOMPLETE_REQUEST_CODE = 2;
     private static final int ENDPLACE_AUTOCOMPLETE_REQUEST_CODE = 3;
-    private Toolbar toolbar;
-    private Fragment_Drawer fragment_drawer;
     private ProgressDialog dialog;
     private GoogleMap mMap;
     MapView mapView;
@@ -80,16 +70,11 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     private List<Polyline> polylinePath;
 
     private LatLng mylocation = null;
-    private boolean isStart = true,isFromMyLocation=false, isSetupRoad=false;
-    private ImageButton btnfindmap, btnfind, btnroute, btnroad, btnhide, btnremovemaker;
-    private Button btnstart, btnstop, btnresume, btnfinish;
+    private boolean isStart = true,isFromMyLocation=false;
+    private ImageButton btnfindmap, btnfind, btnroute, btnremovemaker;
     private LinearLayout lyfindmap;
-    private FrameLayout layoutroad;
-    private TextView txtstart, txtend, txtdistance, txtduration,txtsetup;
+    private TextView txtstart, txtend, txtdistance, txtduration;
     private String origin, destination, makerdestination;
-    private Handler handler;
-    private List<LatLng> listRoadLocation;
-    private List<LatLng> listSetupRoadLocation;
 
     public Fragment_Home() {
         // Required empty public constructor
@@ -102,6 +87,7 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         // Inflate the layout for this fragment
         View view=inflater.inflate(R.layout.fragment_home, container, false);
         initView(view);
+        Log.e("home","oncreateview");
         return view;
     }
 
@@ -158,13 +144,8 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(isSetupRoad){
-                        mMap.addMarker(new MarkerOptions().position(latLng));
-                        listSetupRoadLocation.add(latLng);
-                    }else {
-                        mMap.addMarker(new MarkerOptions().position(latLng).title(findAddressMaker(latLng))
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-                    }
+                    mMap.addMarker(new MarkerOptions().position(latLng).title(findAddressMaker(latLng))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
                 }
             });
         }
@@ -189,40 +170,23 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     };
 
     public void initView(View view) {
-        toolbar=(Toolbar)view.findViewById(R.id.toolbar);
         btnfindmap = (ImageButton) view.findViewById(R.id.imgbtnmap);
         lyfindmap = (LinearLayout) view.findViewById(R.id.layoutfindmap);
-        layoutroad = (FrameLayout) view.findViewById(R.id.layoutRoad);
         txtstart = (TextView) view.findViewById(R.id.txtstartlocation);
         txtend = (TextView) view.findViewById(R.id.txtendlocation);
-        txtsetup=(TextView) view.findViewById(R.id.txtnoticesetup);
         btnfind = (ImageButton) view.findViewById(R.id.btnFindPath);
         txtdistance = (TextView) view.findViewById(R.id.txtdistance);
         txtduration = (TextView) view.findViewById(R.id.txtduration);
         btnroute = (ImageButton) view.findViewById(R.id.btnroute);
-        btnroad = (ImageButton) view.findViewById(R.id.imgbtnroad);
-        btnhide = (ImageButton) view.findViewById(R.id.btnhide);
-        btnstart = (Button) view.findViewById(R.id.btnstart);
-        btnstop = (Button) view.findViewById(R.id.btnstop);
-        btnresume = (Button) view.findViewById(R.id.btnresume);
-        btnfinish = (Button) view.findViewById(R.id.btnfinish);
         btnremovemaker = (ImageButton) view.findViewById(R.id.imgbtnremovemaker);
         polylinePath = new ArrayList<>();
         btnfindmap.setOnClickListener(this);
         btnfind.setOnClickListener(this);
         btnroute.setOnClickListener(this);
-        btnroad.setOnClickListener(this);
-        btnhide.setOnClickListener(this);
-        btnstart.setOnClickListener(this);
-        btnstop.setOnClickListener(this);
-        btnresume.setOnClickListener(this);
-        btnfinish.setOnClickListener(this);
         txtstart.setOnClickListener(this);
         txtend.setOnClickListener(this);
-        txtsetup.setOnClickListener(this);
         btnremovemaker.setOnClickListener(this);
-        listRoadLocation = new ArrayList<LatLng>();
-        listSetupRoadLocation=new ArrayList<>();
+
         //((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
         //fragment_drawer.setUp(R.id.fragment_navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), toolbar);
         //fragment_drawer.setDrawerListener(this);
@@ -284,36 +248,8 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
                 btnfindmap.setVisibility(View.VISIBLE);
                 ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
                 break;
-            case R.id.iten_setupRoad:
-                showDialogSetup();
-                break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void showDialogSetup() {
-        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(getActivity());
-        dialogbuilder.setTitle("QUESTION?");
-        dialogbuilder.setMessage("Khi chọn chức năng này bạn sẽ phải chọn các địa điểm trên Map" +
-                " để thiết lập hành trình \n"+"Bạn có muốn bắt đầu không?");
-        dialogbuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                Toast.makeText(getActivity(), "Bắt đầu thiết lập hành trình.", Toast.LENGTH_SHORT).show();
-                listSetupRoadLocation.clear();
-                isSetupRoad=true;
-                txtsetup.setVisibility(View.VISIBLE);
-            }
-        });
-        dialogbuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (dialog != null)
-                    dialog.dismiss();
-            }
-        });
-        AlertDialog dialog = dialogbuilder.create();
-        dialog.show();
     }
 
     private void searchPlace(int requestcode) {
@@ -393,81 +329,13 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
                 findMyRoute();
                 btnroute.setVisibility(View.GONE);
                 break;
-            case R.id.imgbtnroad:
-                layoutroad.setVisibility(View.VISIBLE);
-                btnroad.setVisibility(View.GONE);
-                break;
-            case R.id.btnhide:
-                layoutroad.setVisibility(View.GONE);
-                btnroad.setVisibility(View.VISIBLE);
-                break;
-            case R.id.btnstart:
-                btnfinish.setClickable(true);
-                showDialogRoad();
-                break;
-            case R.id.btnstop:
-                btnstop.setVisibility(View.GONE);
-                btnresume.setVisibility(View.VISIBLE);
-                Toast.makeText(getActivity(), "Tạm dừng ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
-                if (handler != null)
-                    handler.removeCallbacks(runnable);
-                break;
-            case R.id.btnresume:
-                btnstop.setVisibility(View.VISIBLE);
-                btnresume.setVisibility(View.GONE);
-                Toast.makeText(getActivity(), "Tiếp tục ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
-                getLocationOff();
-                break;
-            case R.id.btnfinish:
-                finishRoad();
-                break;
             case R.id.imgbtnremovemaker:
                 currentmaker.remove();
-                if(isSetupRoad)
-                    listRoadLocation.remove(currentmaker.getPosition());
                 btnremovemaker.setVisibility(View.GONE);
                 btnroute.setVisibility(View.GONE);
                 break;
-            case R.id.txtnoticesetup:
-                destroySetupRoad();
-                break;
         }
     }
-
-    private void destroySetupRoad() {
-        isSetupRoad=false;
-        mMap.clear();
-        listSetupRoadLocation.clear();
-        txtsetup.setVisibility(View.GONE);
-    }
-
-    private void finishRoad() {
-        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(getActivity());
-        dialogbuilder.setTitle("QUESTION?");
-        dialogbuilder.setMessage("Bạn muốn kết thúc ghi dấu hành trình?");
-        dialogbuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                btnstart.setVisibility(View.VISIBLE);
-                btnstop.setVisibility(View.GONE);
-                btnresume.setVisibility(View.GONE);
-                Toast.makeText(getActivity(), "Kết thúc ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
-                if (handler != null)
-                    handler.removeCallbacks(runnable);
-                sendRequestRoad();
-            }
-        });
-        dialogbuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (dialog != null)
-                    dialog.dismiss();
-            }
-        });
-        AlertDialog dialog = dialogbuilder.create();
-        dialog.show();
-    }
-
     private void findMyRoute() {
         isFromMyLocation=true;
         origin = String.valueOf(mylocation.latitude) + ", " + String.valueOf(mylocation.longitude);
@@ -503,23 +371,6 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         }
     }
 
-    private void sendRequestRoad() {
-        if(isSetupRoad){
-            if(listSetupRoadLocation.isEmpty()) {
-                Toast.makeText(getActivity(), "Chưa thiết lập các địa điểm để ghi dấu.", Toast.LENGTH_SHORT).show();
-                return;
-            }else if(listSetupRoadLocation.size()>0){
-                new RoadFinder(this,listSetupRoadLocation).excute();
-            }
-        }else
-        if(listRoadLocation.isEmpty()){
-            Toast.makeText(getActivity(), "Hiện chưa có gì để ghi dấu, xin nhấn Start để bắt đầu", Toast.LENGTH_SHORT).show();
-            return;
-        }else {
-            new RoadFinder(this, listRoadLocation).excute();
-        }
-
-    }
 
     @Override
     public void onDirectionFinderStart() {
@@ -562,100 +413,6 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         }
     }
 
-    public void showDialogRoad() {
-        AlertDialog.Builder dialogbuilder = new AlertDialog.Builder(getActivity());
-        dialogbuilder.setTitle("QUESTION?");
-        dialogbuilder.setMessage("Bạn muốn bắt đầu ghi dấu hành trình?");
-        dialogbuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                btnstart.setVisibility(View.GONE);
-                btnstop.setVisibility(View.VISIBLE);
-                Toast.makeText(getActivity(), "Bắt đầu ghi dấu hành trình.", Toast.LENGTH_SHORT).show();
-                listRoadLocation.clear();
-                getLocationOff();
-            }
-        });
-        dialogbuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (dialog != null)
-                    dialog.dismiss();
-            }
-        });
-        AlertDialog dialog = dialogbuilder.create();
-        dialog.show();
-    }
-
-    public synchronized void getLocationOff() {
-        handler = new Handler();
-        handler.postDelayed(runnable, 5000);
-
-    }
-
-    private Runnable runnable = new Runnable() {
-        public void run() {
-            if (mylocation != null) {
-                if (listRoadLocation != null)
-                    listRoadLocation.add(mylocation);
-                Toast.makeText(getActivity(), mylocation.latitude + " - " + mylocation.longitude, Toast.LENGTH_SHORT).show();
-            }
-            handler.postDelayed(this, 5000);
-        }
-    };
-
-    @Override
-    public void onRoadFinderStart() {
-        dialog = ProgressDialog.show(getActivity(), "Vui lòng đợi", "Hành trình của bạn đang được cập nhập.", true, true);
-//        if (markerStart != null) {
-//            markerStart.remove();
-//        }
-//        if (markerEnd != null) markerEnd.remove();
-//        if (polylinePath != null) {
-//            for (Polyline polyline : polylinePath) {
-//                polyline.remove();
-//            }
-//        }
-    }
-
-    @Override
-    public void onRoadFinderSuccess(List<LatLng> latLngs) {
-        if (dialog != null)
-            dialog.dismiss();
-        PolylineOptions options = new PolylineOptions().geodesic(true).width(15).color(Color.GREEN);
-        for (int i = 0; i < latLngs.size(); i++) {
-            options.add(latLngs.get(i));
-        }
-        polylinePath.add(mMap.addPolyline(options));
-        mMap.addCircle(new CircleOptions().center(latLngs.get(0)).radius(15).strokeWidth(10).strokeColor(Color.GREEN).fillColor(Color.GREEN));
-        mMap.addCircle(new CircleOptions().center(latLngs.get(latLngs.size() - 1)).radius(15).strokeWidth(10).strokeColor(Color.RED).fillColor(Color.RED));
-        PolylineOptions options1 = new PolylineOptions().geodesic(true).width(15).color(Color.RED);
-        if(isSetupRoad){
-            for (int i=0;i<listSetupRoadLocation.size();i++)
-                options1.add(listSetupRoadLocation.get(i));
-            markerStart = mMap.addMarker(new MarkerOptions().title("Diem bat dau")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_origin))
-                    .position(latLngs.get(0)));
-            markerEnd = mMap.addMarker(new MarkerOptions().title("Diem ket thuc")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination))
-                    .position(latLngs.get(latLngs.size()-1)));
-        }else {
-            for (int i = 0; i < listRoadLocation.size(); i++) {
-                options1.add(listRoadLocation.get(i));
-            }
-            markerStart = mMap.addMarker(new MarkerOptions().title("Diem bat dau")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_origin))
-                    .position(latLngs.get(0)));
-            markerEnd = mMap.addMarker(new MarkerOptions().title("Diem ket thuc")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination))
-                    .position(latLngs.get(latLngs.size()-1)));
-        }
-        polylinePath.add(mMap.addPolyline(options1));
-
-        isSetupRoad=false;
-        txtsetup.setVisibility(View.GONE);
-    }
-
     public String findAddressMaker(final LatLng latLng) {
         Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
         String address = "";
@@ -673,4 +430,9 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         return null;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.e("home","vao");
+    }
 }
