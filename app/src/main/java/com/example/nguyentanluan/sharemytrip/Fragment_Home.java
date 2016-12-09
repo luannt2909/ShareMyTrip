@@ -87,7 +87,6 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         // Inflate the layout for this fragment
         View view=inflater.inflate(R.layout.fragment_home, container, false);
         initView(view);
-        Log.e("home","oncreateview");
         return view;
     }
 
