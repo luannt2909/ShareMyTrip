@@ -7,18 +7,31 @@
     android:layout_height="wrap_content">
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgfriendavatar"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:src="@drawable/ic_profile"
         app:civ_border_color="@android:color/black"
         app:civ_border_width="5dp"/>
-    <TextView
-        android:id="@+id/txtfriendname"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:text="Username"
-        android:textSize="25sp"
-        android:paddingLeft="10dp"
-        android:textStyle="bold"
-        android:gravity="center|left"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/txtfriendname"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:text="Username"
+            android:textSize="20sp"
+            android:paddingLeft="10dp"
+            android:textStyle="bold"
+            android:gravity="center|left"/>
+        <TextView
+            android:id="@+id/txtdescription"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="tu dau toi dau"
+            android:paddingLeft="10dp"/>
+    </LinearLayout>
+
+
 </LinearLayout>

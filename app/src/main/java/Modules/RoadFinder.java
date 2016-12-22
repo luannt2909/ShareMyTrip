@@ -26,7 +26,7 @@ public class RoadFinder {
         new RoadAsynctask(listener).execute(createURL(latLngs));
     }
 
-    private String createURL(List<LatLng> lat) {
+    public static String createURL(List<LatLng> lat) {
         String path="";
         for(int i=0;i<lat.size();i++){
             if(i==lat.size()-1)

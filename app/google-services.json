@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "466502102442",
+    "firebase_url": "https://chattrip-e7f28.firebaseio.com",
+    "project_id": "chattrip-e7f28",
+    "storage_bucket": "chattrip-e7f28.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466502102442:android:34a7d77e27759104",
+        "android_client_info": {
+          "package_name": "com.example.nguyentanluan.sharemytrip"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "466502102442-lp7pf9c5goqca0e58fh6c5gnd6pl464j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8_zURYTY-byNuO43XlozFjzG88zpL0FY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

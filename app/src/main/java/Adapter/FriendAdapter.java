@@ -11,7 +11,7 @@ import com.example.nguyentanluan.sharemytrip.R;
 
 import java.util.List;
 
-import Model.User;
+import Model.Post;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
@@ -19,11 +19,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
  */
 
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendViewHolder> {
-    List<User> data;
+    List<Post> data;
     Context mContext;
     LayoutInflater inflater;
 
-    public FriendAdapter(List<User> data, Context Context) {
+    public FriendAdapter(List<Post> data, Context Context) {
         this.data = data;
         this.mContext = Context;
         inflater=inflater.from(mContext);
@@ -38,8 +38,9 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendView
 
     @Override
     public void onBindViewHolder(FriendViewHolder holder, int position) {
-        User currentuser=data.get(position);
-        holder.txtusername.setText(currentuser.getUserName());
+        Post currentuser=data.get(position);
+        holder.txtusername.setText(currentuser.getAuthour());
+        holder.txtdescription.setText(currentuser.getDescription());
     }
 
     @Override
@@ -49,10 +50,12 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendView
     public class FriendViewHolder extends RecyclerView.ViewHolder{
         CircleImageView imgavatar;
         TextView txtusername;
+        TextView txtdescription;
         public FriendViewHolder(View itemView) {
             super(itemView);
             imgavatar=(CircleImageView)itemView.findViewById(R.id.imgfriendavatar);
             txtusername=(TextView)itemView.findViewById(R.id.txtfriendname);
+            txtdescription=(TextView)itemView.findViewById(R.id.txtdescription);
         }
     }
 }

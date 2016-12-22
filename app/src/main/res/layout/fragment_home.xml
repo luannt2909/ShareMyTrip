@@ -1,9 +1,13 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.nguyentanluan.sharemytrip.Fragment_Home">
 
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <!--<fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -132,8 +136,16 @@
                     android:text="..."
                     android:textSize="20sp" />
             </LinearLayout>
+            <ImageButton
+                android:id="@+id/imgbtnclose"
+                android:layout_marginTop="5dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:background="@color/colorPrimary"/>
         </LinearLayout>
     </FrameLayout>
 
 
 </FrameLayout>
+</RelativeLayout>

@@ -1,7 +1,6 @@
 package Modules;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -74,7 +73,6 @@ public class RoadAsynctask  extends AsyncTask<String, Void, String> {
             LatLng latlng=new LatLng(jsonlocation.getDouble("latitude"), jsonlocation.getDouble("longitude"));
             location.add(latlng);
         }
-        Log.e("aaaa",location.size()+"");
         listener.onRoadFinderSuccess(location);
     }
 }

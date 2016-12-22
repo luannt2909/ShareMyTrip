@@ -20,4 +20,10 @@
     </item>
     <item android:title="Clear"
         android:id="@+id/item_clear"></item>
+    <item android:title="Share"
+        android:id="@+id/item_share"></item>
+    <item android:title="setuptrip"
+        android:id="@+id/setup"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        app:showAsAction="ifRoom"></item>
 </menu>
