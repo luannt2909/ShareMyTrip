@@ -15,6 +15,8 @@ import android.view.View;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import Model.User;
+
 public class MainActivity extends AppCompatActivity implements Fragment_Drawer.FragmentDrawerListener {
 
     private Toolbar toolbar;
@@ -39,10 +41,13 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
         frag_friend = new Fragment_Friends();
         frag_setuptrip = new Fragment_SetupTrip();
         String username = getIntent().getStringExtra("username");
+        String avatar = getIntent().getStringExtra("avatar");
         if (!checkUserExist()) {
             mDatabase = FirebaseDatabase.getInstance().getReference();
             key = mDatabase.child("Users").push().getKey();
-            mDatabase.child("Users").child(key).child("userName").setValue(username);
+            User user = new User(username, avatar);
+            mDatabase.child("Users").child(key).setValue(user);
+            //mDatabase.child("Users").child(key).child("userName").setValue(username);
             editor = pref.edit();
             editor.putString("key", key);
             editor.commit();
@@ -86,35 +91,7 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
             FragmentManager manager = getSupportFragmentManager();
             FragmentTransaction transaction = manager.beginTransaction();
             transaction.replace(R.id.container_body, fragment);
-            Bundle bundle = new Bundle();
-            bundle.putString("key", key);
-            fragment.setArguments(bundle);
             transaction.commit();
         }
-    }
-
-    public void showFragment(int resId, Fragment fragment, String tag, String lastTag, boolean addToBackStack) {
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-
-        if (lastTag != null) {
-            Fragment lastFragment = fragmentManager.findFragmentByTag(lastTag);
-            if (lastFragment != null) {
-                transaction.hide(lastFragment);
-            }
-        }
-
-        if (fragment.isAdded()) {
-            transaction.show(fragment);
-        } else {
-            transaction.add(resId, fragment, tag).setBreadCrumbShortTitle(tag);
-        }
-
-        if (addToBackStack) {
-            transaction.addToBackStack(tag);
-        }
-
-        transaction.commit();
     }
 }

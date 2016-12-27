@@ -12,10 +12,16 @@ public class RoadFinder {
     public static final String ROAD_URL_API="https://roads.googleapis.com/v1/snapToRoads?";
     public RoadFinderListener listener;
     public List<LatLng> latLngs;
+    public String url;
 
     public RoadFinder(RoadFinderListener listener, List<LatLng> latLngs) {
         this.listener = listener;
         this.latLngs = latLngs;
+    }
+
+    public RoadFinder(RoadFinderListener listener, String url) {
+        this.listener = listener;
+        this.url = url;
     }
 
     public RoadFinder() {
@@ -23,7 +29,10 @@ public class RoadFinder {
 
     public void excute(){
         listener.onRoadFinderStart();
-        new RoadAsynctask(listener).execute(createURL(latLngs));
+        if(url!=null){
+            new RoadAsynctask(listener).execute(url);
+        }else
+            new RoadAsynctask(listener).execute(createURL(latLngs));
     }
 
     public static String createURL(List<LatLng> lat) {

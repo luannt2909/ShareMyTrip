@@ -2,24 +2,20 @@ package com.example.nguyentanluan.sharemytrip;
 
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,6 +65,7 @@ import Modules.Route;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.MODE_PRIVATE;
 
 
 /**
@@ -83,7 +81,7 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     private ProgressDialog dialog;
     private GoogleMap mMap;
     private MapView mapView;
-    private Marker marker, markerStart, markerEnd, currentmaker;
+    private Marker markerStart, markerEnd, currentmaker;
     private List<Polyline> polylinePath;
 
     private LatLng mylocation = null;
@@ -93,9 +91,9 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     private TextView txtstart, txtend, txtdistance, txtduration;
     private String origin, destination, makerdestination;
     private DatabaseReference mDatabase;
-    private static String userId;
-    private Map<String, User> map;
-    private Map<String, Marker> marker_user;
+    public static String userId;
+    public static Map<String, User> key_user;
+    public static Map<String, Marker> key_marker;
 
     public Fragment_Home() {
         // Required empty public constructor
@@ -108,39 +106,14 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         initView(view);
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mDatabase.child("Users").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot dtn : dataSnapshot.getChildren()) {
-                    final User user = dtn.getValue(User.class);
-                    map.put(dtn.getKey(), user);
-                    Log.e("marker", marker_user.size() + "");
-                    Log.e("User", user.getUserName() + "" + dtn.getKey());
-                    Log.e("map", map.size() + "");
+                    setMapUserandMarker(dtn);
                 }
-                if (marker_user.isEmpty()) {
-                    for (DataSnapshot dtn : dataSnapshot.getChildren()) {
-                        final User user = dtn.getValue(User.class);
-                        Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(user.getLatitude(), user.getLongitude()))
-                                .title(user.getUserName()));
-                        marker_user.put(dtn.getKey(), m);
-
-                    }
-                    marker_user.get(userId).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                } else {
-                    for (DataSnapshot dtn : dataSnapshot.getChildren()) {
-                        final User user = dtn.getValue(User.class);
-                        marker_user.get(dtn.getKey()).remove();
-                        Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(user.getLatitude(), user.getLongitude()))
-                                .title(user.getUserName()));
-                        marker_user.put(dtn.getKey(), m);
-
-                    }
-                    marker_user.get(userId).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                }
-
-
             }
 
             @Override
@@ -151,22 +124,20 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         mDatabase.child("Users").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
+                setMapUserandMarker(dataSnapshot);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                Log.e("newChild", dataSnapshot.getKey());
-
+                setMapUserandMarker(dataSnapshot);
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 String keyremove = dataSnapshot.getKey().toString();
-                marker_user.get(keyremove).remove();
-                marker_user.remove(keyremove);
-                map.remove(keyremove);
+                key_marker.get(keyremove).remove();
+                key_marker.remove(keyremove);
+                key_user.remove(keyremove);
             }
 
             @Override
@@ -190,7 +161,9 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         getActivity().invalidateOptionsMenu();
         requestPermission(android.Manifest.permission.ACCESS_FINE_LOCATION,
                 LOCATION_REQUEST_CODE);
-        userId = getArguments().getString("key");
+        //userId = getArguments().getString("key");
+        SharedPreferences pref = getActivity().getSharedPreferences(MainActivity.MYKEY, MODE_PRIVATE);
+        userId = pref.getString("key", "");
     }
 
     @Override
@@ -222,10 +195,10 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     GoogleMap.OnMyLocationButtonClickListener mylocationbuttonclicklistenner = new GoogleMap.OnMyLocationButtonClickListener() {
         @Override
         public boolean onMyLocationButtonClick() {
-            if (marker != null) {
+           /* if (marker != null) {
                 marker.remove();
-            }
-            getActivity().runOnUiThread(new Runnable() {
+            }*/
+            /*getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     if (mylocation != null) {
@@ -234,7 +207,7 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
                         marker.setTag(0);
                     } else return;
                 }
-            });
+            });*/
             return false;
         }
     };
@@ -260,12 +233,19 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     GoogleMap.OnMarkerClickListener markerClickListener = new GoogleMap.OnMarkerClickListener() {
         @Override
         public boolean onMarkerClick(Marker marker) {
+
             if (btnfindmap.getVisibility() == View.VISIBLE)
                 btnroute.setVisibility(View.VISIBLE);
-            if (isMarkerUser(marker))
+            if (isMarkerUser(marker)) {
                 btnremovemaker.setVisibility(View.GONE);
-            else
+                //setInforWindow(mMap, marker);
+                marker.showInfoWindow();
+            }
+            else {
+                marker.hideInfoWindow();
                 btnremovemaker.setVisibility(View.VISIBLE);
+                //return true;
+            }
             currentmaker = marker;
             makerdestination = String.valueOf(marker.getPosition().latitude) + ", " + String.valueOf(marker.getPosition().longitude);
             return false;
@@ -291,8 +271,9 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         txtend.setOnClickListener(this);
         btnclose.setOnClickListener(this);
         btnremovemaker.setOnClickListener(this);
-        map = new HashMap<>();
-        marker_user = new HashMap<>();
+        key_user = new HashMap<>();
+        key_marker = new HashMap<>();
+
     }
 
     @Override
@@ -309,6 +290,7 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
 
             return;
         }
+        setInforWindow(mMap);
         mMap.setOnMyLocationChangeListener(mylocationchangeListener);
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
@@ -317,6 +299,64 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         mMap.setOnMapClickListener(mapClickListener);
         mMap.setOnMyLocationButtonClickListener(mylocationbuttonclicklistenner);
 
+    }
+
+    private void setMapUserandMarker(DataSnapshot dataSnapshot) {
+        User user = dataSnapshot.getValue(User.class);
+        String key = dataSnapshot.getKey();
+        key_user.put(key, user);
+        if (key_marker.get(key) != null)
+            key_marker.get(key).remove();
+        if (user.getUseravatar() != null) {
+            Bitmap bmp = LoginActivity.StringToBitMap(user.getUseravatar());
+            Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(user.getLatitude(), user.getLongitude()))
+                    .title(user.getUserName()).icon(BitmapDescriptorFactory.fromBitmap(LoginActivity.getResizedBitmap(bmp, 120, 120))));
+            key_marker.put(key, m);
+        } else {
+            Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(user.getLatitude(), user.getLongitude()))
+                    .title(user.getUserName()));
+            key_marker.put(key, m);
+        }
+    }
+
+    private void setInforWindow(GoogleMap mMap) {
+        //final User user = findUserbyMarker(marker);
+
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                User user=findUserbyMarker(marker);
+                View v = getActivity().getLayoutInflater().inflate(R.layout.info_window, null);
+                ImageView imgavatar = (ImageView) v.findViewById(R.id.imgavatarInfo);
+                TextView txtUsername = (TextView) v.findViewById(R.id.txtusernameInfo);
+                TextView txtlocation = (TextView) v.findViewById(R.id.txtlocationInfo);
+                TextView txtaddress = (TextView) v.findViewById(R.id.txtaddressInfo);
+                if (user != null) {
+                    if (user.getUseravatar() != null)
+                        imgavatar.setImageBitmap(LoginActivity.StringToBitMap(user.getUseravatar()));
+
+                    else imgavatar.setImageResource(R.drawable.ic_profile);
+                    txtUsername.setText(user.getUserName());
+                    txtlocation.setText(user.getLatitude() + " - " + user.getLongitude());
+                    txtaddress.setText(findAddressMaker(new LatLng(user.getLatitude(), user.getLongitude())));
+                }else return null;
+                return v;
+            }
+        });
+    }
+
+    private User findUserbyMarker(Marker marker) {
+        for (Map.Entry<String, Marker> entry : key_marker.entrySet()) {
+            if (entry.getValue().equals(marker)) {
+                return key_user.get(entry.getKey());
+            }
+        }
+        return null;
     }
 
     protected void requestPermission(String permissionType, int requestCode) {
@@ -404,7 +444,7 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(getActivity(), data);
-                mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
+                currentmaker=mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 16));
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(getActivity(), data);
@@ -570,27 +610,11 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
         return null;
     }
 
-    private Bitmap getMarkerBitmapFromView(@DrawableRes int resId) {
-
-        View view = ((LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.view_custom_marker, null);
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        //view.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        view.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
-        view.layout(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
-        view.buildDrawingCache();
-        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-
-        Canvas canvas = new Canvas(bitmap);
-        view.draw(canvas);
-
-        return bitmap;
-    }
 
     private boolean isMarkerUser(Marker marker) {
-        if (marker_user.isEmpty())
+        if (key_marker.isEmpty())
             return false;
-        for (Marker m : marker_user.values()) {
+        for (Marker m : key_marker.values()) {
             if (m.equals(marker))
                 return true;
         }
@@ -607,6 +631,12 @@ public class Fragment_Home extends Fragment implements OnMapReadyCallback, View.
     public void onPause() {
         super.onPause();
         isStart = true;
+
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
     }
 }
 

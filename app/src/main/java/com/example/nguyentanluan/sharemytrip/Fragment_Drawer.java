@@ -2,6 +2,7 @@ package com.example.nguyentanluan.sharemytrip;
 
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
@@ -14,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +32,17 @@ public class Fragment_Drawer extends Fragment {
     private static String TAG = Fragment_Drawer.class.getSimpleName();
 
     private RecyclerView recyclerView;
+    private ImageView icon_profile;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private NavigationDrawerAdapter adapter;
     private View containerView;
+    private static int[] icon=new int[]{
+            R.drawable.ic_home,
+            R.drawable.ic_friends,
+            R.drawable.ic_notification,
+            R.drawable.ic_setuptrip
+    };
     private static String[] titles = null;
     private FragmentDrawerListener drawerListener;
 
@@ -47,12 +56,11 @@ public class Fragment_Drawer extends Fragment {
 
     public static List<NavDrawerItem> getData() {
         List<NavDrawerItem> data = new ArrayList<>();
-
-
         // preparing navigation drawer items
         for (int i = 0; i < titles.length; i++) {
             NavDrawerItem navItem = new NavDrawerItem();
             navItem.setTitle(titles[i]);
+            navItem.setIcon(icon[i]);
             data.add(navItem);
         }
         return data;
@@ -70,8 +78,13 @@ public class Fragment_Drawer extends Fragment {
                              Bundle savedInstanceState) {
         // Inflating view layout
         View layout = inflater.inflate(R.layout.fragment_navigation_drawer, container, false);
+
         recyclerView = (RecyclerView) layout.findViewById(R.id.drawerList);
         adapter = new NavigationDrawerAdapter(getActivity(), getData());
+        icon_profile=(ImageView)layout.findViewById(R.id.icon_profile) ;
+        SharedPreferences pref=getActivity().getSharedPreferences(MainActivity.MYKEY,Context.MODE_PRIVATE);
+        String avatar=pref.getString("avatar","");
+        icon_profile.setImageBitmap(LoginActivity.StringToBitMap(avatar));
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), recyclerView, new ClickListener() {

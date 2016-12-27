@@ -7,6 +7,7 @@ package Model;
 public class NavDrawerItem {
     private String showNotify;
     private String title;
+    private int icon;
 
     public NavDrawerItem() {
     }
@@ -14,6 +15,20 @@ public class NavDrawerItem {
     public NavDrawerItem(String showNotify, String title) {
         this.showNotify = showNotify;
         this.title = title;
+    }
+
+    public NavDrawerItem(String showNotify, String title, int icon) {
+        this.showNotify = showNotify;
+        this.title = title;
+        this.icon = icon;
+    }
+
+    public int getIcon() {
+        return icon;
+    }
+
+    public void setIcon(int icon) {
+        this.icon = icon;
     }
 
     public String getShowNotify() {

@@ -1,7 +1,5 @@
 package Model;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.util.List;
 
 /**
@@ -38,7 +36,10 @@ public class User {
         this.checkLocation = checkLocation;
     }
 
-
+    public User(String userName, String useravatar) {
+        this.userName = userName;
+        this.useravatar = useravatar;
+    }
 
     public String getUserID() {
         return userID;
