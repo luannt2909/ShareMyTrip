@@ -313,7 +313,7 @@ public class Fragment_SetupTrip extends Fragment implements OnMapReadyCallback, 
 
     public synchronized void getLocationOff() {
         handler = new Handler();
-        handler.postDelayed(runnable, 5000);
+        handler.postDelayed(runnable, 30000);
 
     }
 
@@ -324,13 +324,13 @@ public class Fragment_SetupTrip extends Fragment implements OnMapReadyCallback, 
                     listRoadLocation.add(mylocation);
                 Toast.makeText(getActivity(), mylocation.latitude + " - " + mylocation.longitude, Toast.LENGTH_SHORT).show();
             }
-            handler.postDelayed(this, 5000);
+            handler.postDelayed(this, 30000);
         }
     };
 
     @Override
     public void onRoadFinderStart() {
-        dialog = ProgressDialog.show(getActivity(), "Vui lòng đợi", "Hành trình của bạn đang được cập nhập.", true, true);
+        dialog = ProgressDialog.show(getActivity(), "Vui lòng đợi", "Hành trình của bạn đang được cập nhật.", true, true);
 //        if (markerStart != null) {
 //            markerStart.remove();
 //        }

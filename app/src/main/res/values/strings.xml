@@ -19,7 +19,6 @@
 
     <string-array name="nav_drawer_label">
         <item>@string/nav_item_home</item>
-        <item>@string/nav_item_friend</item>
         <item>@string/nav_item_notifications</item>
         <item>@string/nav_item_setuptrip</item>
     </string-array>

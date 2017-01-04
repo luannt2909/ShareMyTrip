@@ -40,7 +40,6 @@ public class Fragment_Drawer extends Fragment {
     private static int[] icon=new int[]{
             R.drawable.ic_home,
             R.drawable.ic_friends,
-            R.drawable.ic_notification,
             R.drawable.ic_setuptrip
     };
     private static String[] titles = null;

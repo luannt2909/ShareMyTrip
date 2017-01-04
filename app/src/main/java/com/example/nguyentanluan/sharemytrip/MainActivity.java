@@ -82,8 +82,6 @@ public class MainActivity extends AppCompatActivity implements Fragment_Drawer.F
                 fragment = frag_friend;
                 break;
             case 2:
-                break;
-            case 3:
                 fragment = frag_setuptrip;
                 break;
         }
